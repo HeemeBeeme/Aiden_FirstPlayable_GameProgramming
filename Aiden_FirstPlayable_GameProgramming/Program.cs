@@ -23,10 +23,10 @@ namespace Aiden_FirstPlayable_GameProgramming
         static Char Player = '0';
 
         static (int, int) PlayerPos = (6, 12);
-        static (int, int) NewPlayerPos = (0, 0);
+        static (int, int) NewPlayerPos;
 
         static int PlayerHealth = 100;
-        static int PlayerAttack = 15;
+        static int PlayerAttack = 25;
         static int PlayerSpeed = 1;
 
         static (int, int) PlayerPosYClamp ;
@@ -39,7 +39,7 @@ namespace Aiden_FirstPlayable_GameProgramming
         static Char Enemy = 'X';
 
         static (int, int) EnemyPos = (11, 45);
-        static (int, int) NewEnemyPos = (0, 0);
+        static (int, int) NewEnemyPos;
 
         static int EnemyHealth = 75;
         static int EnemyAttack = 10;
@@ -135,9 +135,11 @@ namespace Aiden_FirstPlayable_GameProgramming
 
         }
 
-        static void Movement()
+        static void PlayerMovement()
         {
             var key = Console.ReadKey(true).Key;
+
+            NewPlayerPos = PlayerPos;
 
             switch (key)
             {
@@ -145,8 +147,7 @@ namespace Aiden_FirstPlayable_GameProgramming
 
                     if (PlayerPos.Item1 > PlayerPosYClamp.Item1 - PlayerSpeed && !(MapChar[PlayerPos.Item1 - PlayerSpeed][PlayerPos.Item2] == '^') && !(MapChar[PlayerPos.Item1 - PlayerSpeed][PlayerPos.Item2] == '~'))
                     {
-                        PlayerPos.Item1 -= PlayerSpeed;
-                        NewPlayerPos = PlayerPos;
+                        NewPlayerPos.Item1 -= PlayerSpeed;
                     }
 
                     break;
@@ -155,8 +156,7 @@ namespace Aiden_FirstPlayable_GameProgramming
 
                     if (PlayerPos.Item1 < PlayerPosYClamp.Item2 - PlayerSpeed && !(MapChar[PlayerPos.Item1 + PlayerSpeed][PlayerPos.Item2] == '^') && !(MapChar[PlayerPos.Item1 + PlayerSpeed][PlayerPos.Item2] == '~'))
                     {
-                        PlayerPos.Item1 += PlayerSpeed;
-                        NewPlayerPos = PlayerPos;
+                        NewPlayerPos.Item1 += PlayerSpeed;
                     }
 
                     break;
@@ -165,8 +165,7 @@ namespace Aiden_FirstPlayable_GameProgramming
 
                     if (PlayerPos.Item2 > PlayerPosXClamp.Item1 - PlayerSpeed && !(MapChar[PlayerPos.Item1][PlayerPos.Item2 - PlayerSpeed] == '^') && !(MapChar[PlayerPos.Item1][PlayerPos.Item2 - PlayerSpeed] == '~'))
                     {
-                        PlayerPos.Item2 -= PlayerSpeed;
-                        NewPlayerPos = PlayerPos;
+                        NewPlayerPos.Item2 -= PlayerSpeed;
                     }
 
                     break;
@@ -176,13 +175,25 @@ namespace Aiden_FirstPlayable_GameProgramming
                     if (PlayerPos.Item2 < PlayerPosXClamp.Item2 - PlayerSpeed && !(MapChar[PlayerPos.Item1][PlayerPos.Item2 + PlayerSpeed] == '^') && !(MapChar[PlayerPos.Item1][PlayerPos.Item2 + PlayerSpeed] == '~'))
                     {
 
-                        PlayerPos.Item2 += PlayerSpeed;
-                        NewPlayerPos = PlayerPos;
+                        NewPlayerPos.Item2 += PlayerSpeed;
                     }
 
                     break;
             }
-                
+
+            PlayerPos = NewPlayerPos;
+
+        }
+
+        static void EnemyMovement()
+        {
+            int EnemyDistanceY = PlayerPos.Item1 - EnemyPos.Item1;
+            int EnemyDistanceX = PlayerPos.Item2 - EnemyPos.Item2;
+
+            float Distance = EnemyDistanceX + EnemyDistanceY;
+
+
+
         }
 
         static void Update()
@@ -193,7 +204,7 @@ namespace Aiden_FirstPlayable_GameProgramming
             while (!isDead)
             {
                 PrintMap();
-                Movement();
+                PlayerMovement();
 
                 Console.Clear();
 
