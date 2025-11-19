@@ -27,7 +27,7 @@ namespace Aiden_FirstPlayable_GameProgramming
 
         static int PlayerHealth = 100;
         static int PlayerAttack = 15;
-        static int PlayerSpeed = 15;
+        static int PlayerSpeed = 1;
 
         static (int, int) PlayerPosYClamp ;
         static (int, int) PlayerPosXClamp;
@@ -56,10 +56,28 @@ namespace Aiden_FirstPlayable_GameProgramming
 
         #endregion
 
+        static void PrintHorizontalBorder()
+        {
+            Console.Write("*");
+
+            for (int i = 0; i < MapStringArray[1].Length; i++)
+            {
+                Console.Write("-");
+            }
+
+            Console.Write("*");
+        }
+
         static void PrintMap()
         {
+            PrintHorizontalBorder();
+
+            Console.WriteLine();
+
             for (int i = 0; i < MapStringArray.Length; i++)
             {
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write("|");
                 for (int j = 0; j < MapChar[i].Length; j++)
                 {
                     (int, int) MapTuple = (i, j);
@@ -89,12 +107,15 @@ namespace Aiden_FirstPlayable_GameProgramming
                         Console.ForegroundColor = ConsoleColor.DarkGray;
                         Console.Write(MapChar[i][j]);
                     }
-
                 }
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write("|");
 
                 Console.WriteLine();
 
             }
+
+            PrintHorizontalBorder();
         }
 
         static void InitializeMap()
@@ -114,7 +135,7 @@ namespace Aiden_FirstPlayable_GameProgramming
 
         }
 
-        static void PlayerMovement()
+        static void Movement()
         {
             var key = Console.ReadKey(true).Key;
 
@@ -122,9 +143,9 @@ namespace Aiden_FirstPlayable_GameProgramming
             {
                 case ConsoleKey.W:
 
-                    if (PlayerPos.Item1 > PlayerPosYClamp.Item1 - 1 && !(MapChar[PlayerPos.Item1-1][PlayerPos.Item2] == '^') && !(MapChar[PlayerPos.Item1-1][PlayerPos.Item2] == '~'))
+                    if (PlayerPos.Item1 > PlayerPosYClamp.Item1 - PlayerSpeed && !(MapChar[PlayerPos.Item1 - PlayerSpeed][PlayerPos.Item2] == '^') && !(MapChar[PlayerPos.Item1 - PlayerSpeed][PlayerPos.Item2] == '~'))
                     {
-                        PlayerPos.Item1--;
+                        PlayerPos.Item1 -= PlayerSpeed;
                         NewPlayerPos = PlayerPos;
                     }
 
@@ -132,9 +153,9 @@ namespace Aiden_FirstPlayable_GameProgramming
 
                 case ConsoleKey.S:
 
-                    if (PlayerPos.Item1 < PlayerPosYClamp.Item2 - 1 && !(MapChar[PlayerPos.Item1+1][PlayerPos.Item2] == '^') && !(MapChar[PlayerPos.Item1+1][PlayerPos.Item2] == '~'))
+                    if (PlayerPos.Item1 < PlayerPosYClamp.Item2 - PlayerSpeed && !(MapChar[PlayerPos.Item1 + PlayerSpeed][PlayerPos.Item2] == '^') && !(MapChar[PlayerPos.Item1 + PlayerSpeed][PlayerPos.Item2] == '~'))
                     {
-                        PlayerPos.Item1++;
+                        PlayerPos.Item1 += PlayerSpeed;
                         NewPlayerPos = PlayerPos;
                     }
 
@@ -142,9 +163,9 @@ namespace Aiden_FirstPlayable_GameProgramming
 
                 case ConsoleKey.A:
 
-                    if (PlayerPos.Item2 > PlayerPosXClamp.Item1 - 1 && !(MapChar[PlayerPos.Item1][PlayerPos.Item2-1] == '^') && !(MapChar[PlayerPos.Item1][PlayerPos.Item2-1] == '~'))
+                    if (PlayerPos.Item2 > PlayerPosXClamp.Item1 - PlayerSpeed && !(MapChar[PlayerPos.Item1][PlayerPos.Item2 - PlayerSpeed] == '^') && !(MapChar[PlayerPos.Item1][PlayerPos.Item2 - PlayerSpeed] == '~'))
                     {
-                        PlayerPos.Item2--;
+                        PlayerPos.Item2 -= PlayerSpeed;
                         NewPlayerPos = PlayerPos;
                     }
 
@@ -152,9 +173,10 @@ namespace Aiden_FirstPlayable_GameProgramming
 
                 case ConsoleKey.D:
 
-                    if (PlayerPos.Item2 < PlayerPosXClamp.Item2 - 1 && !(MapChar[PlayerPos.Item1][PlayerPos.Item2+1] == '^') && !(MapChar[PlayerPos.Item1][PlayerPos.Item2+1] == '~'))
+                    if (PlayerPos.Item2 < PlayerPosXClamp.Item2 - PlayerSpeed && !(MapChar[PlayerPos.Item1][PlayerPos.Item2 + PlayerSpeed] == '^') && !(MapChar[PlayerPos.Item1][PlayerPos.Item2 + PlayerSpeed] == '~'))
                     {
-                        PlayerPos.Item2++;
+
+                        PlayerPos.Item2 += PlayerSpeed;
                         NewPlayerPos = PlayerPos;
                     }
 
@@ -171,7 +193,8 @@ namespace Aiden_FirstPlayable_GameProgramming
             while (!isDead)
             {
                 PrintMap();
-                PlayerMovement();
+                Movement();
+
                 Console.Clear();
 
             }
