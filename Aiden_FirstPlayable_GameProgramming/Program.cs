@@ -46,6 +46,7 @@ namespace Aiden_FirstPlayable_GameProgramming
 
         static int EnemyHealth = 75;
         static int EnemyAttack = 10;
+        static int EnemyAttackSpeed = 200;
         static float EnemySpeed = 0.25f;
 
         #endregion
@@ -190,7 +191,7 @@ namespace Aiden_FirstPlayable_GameProgramming
             PlayerPos = NewPlayerPos;
 
             Console.SetCursorPosition(PlayerPos.Item2+1, PlayerPos.Item1+1);
-            Console.ForegroundColor= ConsoleColor.Green;
+            Console.ForegroundColor = ConsoleColor.Green;
             Console.Write(Player);
 
         }
@@ -227,18 +228,12 @@ namespace Aiden_FirstPlayable_GameProgramming
                     }
                     Console.Write(MapChar[EnemyPos.Item1][EnemyPos.Item2]);
 
-
                     EnemyPos = ((int)NewEnemyPosY, (int)NewEnemyPosX);
                 }
                 else
                 {
                     EnemyPosY = EnemyPos.Item1;
                     EnemyPosX = EnemyPos.Item2;
-                }
-
-                if (Math.Abs(PlayerPos.Item1 - EnemyPos.Item1) < 1 && Math.Abs(PlayerPos.Item2 - EnemyPos.Item2) < 1)
-                {
-                    isDead = true;
                 }
 
                 Console.SetCursorPosition(EnemyPos.Item2 + 1, EnemyPos.Item1 + 1);
@@ -249,8 +244,28 @@ namespace Aiden_FirstPlayable_GameProgramming
 
         }
 
+        static void EnemyAttacking()
+        {
+            if (Math.Abs(PlayerPos.Item1 - EnemyPos.Item1) < 1 && Math.Abs(PlayerPos.Item2 - EnemyPos.Item2) < 1)
+            {
+                PlayerHealth -= EnemyAttack;
+
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.SetCursorPosition(0, MapStringArray.Length + 2);
+                Console.Write("PlayerHealth:                \n");
+
+                if (PlayerHealth <= 0)
+                {
+                    isDead = true;
+                }
+
+                Thread.Sleep(EnemyAttackSpeed);
+            }
+        }
+
         static void Update()
         {
+
             PlayerPosYClamp = (1, MapStringArray.Length);
             PlayerPosXClamp = (1, MapStringArray[1].Length);
 
@@ -268,11 +283,17 @@ namespace Aiden_FirstPlayable_GameProgramming
             {
                 EnemyMovement();
 
-                if(Console.KeyAvailable)
+                if (Console.KeyAvailable)
                 {
                     PlayerMovement();
                 }
 
+                EnemyAttacking();
+
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.SetCursorPosition(0, MapStringArray.Length + 2);
+                Console.Write($"PlayerHealth:{PlayerHealth}\n");
+                Console.Write($"EnemyHealth:{EnemyHealth}");
                 Thread.Sleep(FrameTime);
             }
         }
