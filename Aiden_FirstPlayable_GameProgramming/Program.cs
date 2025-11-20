@@ -14,8 +14,6 @@ namespace Aiden_FirstPlayable_GameProgramming
     {
         static bool isDead = false;
 
-        static int FrameTime = 100;
-
         static ConsoleKeyInfo PlayerInput;
 
         #region Player
@@ -29,7 +27,7 @@ namespace Aiden_FirstPlayable_GameProgramming
         static int PlayerAttack = 25;
         static int PlayerSpeed = 1;
 
-        static (int, int) PlayerPosYClamp ;
+        static (int, int) PlayerPosYClamp;
         static (int, int) PlayerPosXClamp;
 
         #endregion
@@ -41,9 +39,12 @@ namespace Aiden_FirstPlayable_GameProgramming
         static (int, int) EnemyPos = (11, 45);
         static (int, int) NewEnemyPos;
 
+        static float EnemyPosY = EnemyPos.Item2;
+        static float EnemyPosX = EnemyPos.Item1;
+
         static int EnemyHealth = 75;
         static int EnemyAttack = 10;
-        static int EnemySpeed = 2;
+        static int EnemySpeed = 1;
 
         #endregion
 
@@ -80,19 +81,7 @@ namespace Aiden_FirstPlayable_GameProgramming
                 Console.Write("|");
                 for (int j = 0; j < MapChar[i].Length; j++)
                 {
-                    (int, int) MapTuple = (i, j);
-
-                    if (MapTuple == PlayerPos)
-                    {
-                        Console.ForegroundColor = ConsoleColor.Green;
-                        Console.Write(Player);
-                    }
-                    else if (MapTuple == EnemyPos)
-                    {
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.Write(Enemy);
-                    }
-                    else if (MapChar[i][j] == '-')
+                    if (MapChar[i][j] == '-')
                     {
                         Console.ForegroundColor = ConsoleColor.DarkGreen;
                         Console.Write(MapChar[i][j]);
@@ -181,7 +170,26 @@ namespace Aiden_FirstPlayable_GameProgramming
                     break;
             }
 
+            Console.SetCursorPosition(PlayerPos.Item2+1, PlayerPos.Item1+1);
+            if(MapChar[PlayerPos.Item1][PlayerPos.Item2] == '^')
+            {
+                Console.ForegroundColor = ConsoleColor.DarkGray;
+            }
+            else if (MapChar[PlayerPos.Item1][PlayerPos.Item2] == '~')
+            {
+                Console.ForegroundColor = ConsoleColor.DarkBlue;
+            }
+            else if (MapChar[PlayerPos.Item1][PlayerPos.Item2] == '-')
+            {
+                Console.ForegroundColor = ConsoleColor.DarkGreen;
+            }
+            Console.Write(MapChar[PlayerPos.Item1][PlayerPos.Item2]);
+
             PlayerPos = NewPlayerPos;
+
+            Console.SetCursorPosition(PlayerPos.Item2+1, PlayerPos.Item1+1);
+            Console.ForegroundColor= ConsoleColor.Green;
+            Console.Write(Player);
 
         }
 
@@ -190,9 +198,36 @@ namespace Aiden_FirstPlayable_GameProgramming
             int EnemyDistanceY = PlayerPos.Item1 - EnemyPos.Item1;
             int EnemyDistanceX = PlayerPos.Item2 - EnemyPos.Item2;
 
-            float Distance = EnemyDistanceX + EnemyDistanceY;
+            float Distance = (float)Math.Sqrt(EnemyDistanceX * EnemyDistanceX + EnemyDistanceY * EnemyDistanceY);
 
+            if(Distance > 0)
+            {
+                EnemyPosY += EnemyDistanceY / Distance * EnemySpeed;
+                EnemyPosX += EnemyDistanceX / Distance * EnemySpeed;
 
+                float NewEnemyPosY = (float)Math.Round(EnemyPosY);
+                float NewEnemyPosX = (float)Math.Round(EnemyPosX);
+
+                if (MapChar[(int)NewEnemyPosY][(int)NewEnemyPosX] == '-')
+                {
+                    EnemyPos = ((int)NewEnemyPosY, (int)NewEnemyPosX);
+                }
+                else
+                {
+                    NewEnemyPosY = EnemyPos.Item1;
+                    NewEnemyPosX = EnemyPos.Item2;
+                }
+
+                if (Math.Abs(PlayerPos.Item1 - EnemyPos.Item1) < 1 && Math.Abs(PlayerPos.Item2 - EnemyPos.Item2) < 1)
+                {
+                    isDead = true;
+                }
+
+                Console.SetCursorPosition(EnemyPos.Item2, EnemyPos.Item1);
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write(Enemy);
+
+            }
 
         }
 
@@ -201,13 +236,20 @@ namespace Aiden_FirstPlayable_GameProgramming
             PlayerPosYClamp = (1, MapStringArray.Length);
             PlayerPosXClamp = (1, MapStringArray[1].Length);
 
+            PrintMap();
+
+            Console.SetCursorPosition(PlayerPos.Item2 + 1, PlayerPos.Item1 + 1);
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.Write(Player);
+
+            Console.SetCursorPosition(EnemyPos.Item2 + 1, EnemyPos.Item1 + 1);
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.Write(Enemy);
+
             while (!isDead)
             {
-                PrintMap();
+                EnemyMovement();
                 PlayerMovement();
-
-                Console.Clear();
-
             }
         }
 
@@ -218,6 +260,7 @@ namespace Aiden_FirstPlayable_GameProgramming
             Update();
 
             Console.WriteLine("Game Over!");
+            Console.ReadKey(true);
         }
     }
 }
