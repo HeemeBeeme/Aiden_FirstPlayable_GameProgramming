@@ -511,10 +511,10 @@ namespace Aiden_FirstPlayable_GameProgramming
         {
             Console.CursorVisible = false;
 
-            //Menu();
+            Menu();
 
-            //InitializeMap();
-            //Update();
+            InitializeMap();
+            Update();
 
             EndGame();
         }
