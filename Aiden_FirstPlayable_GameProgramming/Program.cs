@@ -26,6 +26,7 @@ namespace Aiden_FirstPlayable_GameProgramming
         static (int, int) PlayerPos = (6, 12);
         static (int, int) NewPlayerPos;
 
+        static int MaxPlayerHealth = 100;
         static int PlayerHealth = 100;
         static int PlayerAttack = 25;
         static int PlayerSpeed = 1;
@@ -33,33 +34,53 @@ namespace Aiden_FirstPlayable_GameProgramming
         static (int, int) PlayerPosYClamp;
         static (int, int) PlayerPosXClamp;
 
+        static int PlayerScore = 0;
+
         #endregion
 
         #region Enemy
 
         static Char Enemy = 'X';
 
-        static (int, int) EnemyPos = (11, 45);
-        static (int, int) NewEnemyPos;
+        static int EnemyCount = 3;
 
-        static float EnemyPosY = EnemyPos.Item1;
-        static float EnemyPosX = EnemyPos.Item2;
-
-        static int EnemyHealth = 75;
-        static int EnemyAttack = 10;
         static int EnemyAttackSpeed = 200;
+        static int[] EnemyAttackTime = { 0, 0, 0 };
+
+        static int[] InitialEnemyPosY = { 11, 10, 9 };
+        static int[] InitialEnemyPosX = { 45, 20, 54 };
+
+        static int[] EnemyPosY = { 11, 10, 9 };
+        static int[] EnemyPosX = { 45, 20, 54 };
+
+        static float[] EnemyMoveY = { 11, 10, 9 };
+        static float[] EnemyMoveX = { 45, 20, 54 };
+
+        static int MaxEnemyHealth = 75;
+        static int[] EnemyHealth = { 75, 75, 75 };
+        static int EnemyAttack = 10;
         static float EnemySpeed = 0.25f;
 
-        static bool EnemyAlive = true;
+        static (int, int) EnemyPosYClamp;
+        static (int, int) EnemyPosXClamp;
+
+        static int EnemyKillScore = 50;
 
         #endregion
 
         #region Map
 
-        static string path = "Map.txt";
+        static string MapPath = "Map.txt";
         static string[] MapStringArray;
 
         static Char[][] MapChar;
+
+        #endregion
+
+        #region Leaderboard
+
+        static string LeaderboardPath = "Leaderboard.txt";
+        static string[] LeaderboardStringArray;
 
         #endregion
 
@@ -115,7 +136,7 @@ namespace Aiden_FirstPlayable_GameProgramming
 
         static void InitializeMap()
         {
-            MapStringArray = File.ReadAllLines(path);
+            MapStringArray = File.ReadAllLines(MapPath);
             MapChar = new char[MapStringArray.Length][];
 
             for (int i = 0; i < MapStringArray.Length; i++)
@@ -192,95 +213,90 @@ namespace Aiden_FirstPlayable_GameProgramming
 
         static void PlayerAttacking()
         {
-            if(EnemyAlive)
+            for(int i = 0; i < EnemyCount; i++)
             {
-                if (Math.Abs(EnemyPos.Item1 - NewPlayerPos.Item1) < 1 && Math.Abs(EnemyPos.Item2 - NewPlayerPos.Item2) < 1)
+                if (Math.Abs(EnemyPosY[i] - NewPlayerPos.Item1) < 1 && Math.Abs(EnemyPosX[i] - NewPlayerPos.Item2) < 1)
                 {
-                    EnemyHealth -= PlayerAttack;
+                    EnemyHealth[i] -= PlayerAttack;
 
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.SetCursorPosition(0, MapStringArray.Length + 3);
-                    Console.Write("EnemyHealth:                \n");
-
-                    if (EnemyHealth <= 0)
+                    if (EnemyHealth[i] == 0)
                     {
-                        EnemyAlive = false;
-                    }
+                        PlayerScore += EnemyKillScore;
+                        PlayerHealth = MaxPlayerHealth;
 
-                    Thread.Sleep(EnemyAttackSpeed);
+                        EnemyHealth[i] = MaxEnemyHealth;
+                        EnemyPosY[i] = InitialEnemyPosY[i];
+                        EnemyPosX[i] = InitialEnemyPosX[i];
+                        EnemyMoveY[i] = InitialEnemyPosY[i];
+                        EnemyMoveX[i] = InitialEnemyPosX[i];
+                    }
                 }
             }
         }
 
         static void EnemyMovement()
         {
-            if(EnemyAlive)
+
+            for (int i = 0; i < EnemyCount; i++)
             {
-                int EnemyDistanceY = PlayerPos.Item1 - EnemyPos.Item1;
-                int EnemyDistanceX = PlayerPos.Item2 - EnemyPos.Item2;
+                int EnemyDistanceY = PlayerPos.Item1 - EnemyPosY[i];
+                int EnemyDistanceX = PlayerPos.Item2 - EnemyPosX[i];
 
-                float Distance = (float)Math.Sqrt(EnemyDistanceX * EnemyDistanceX + EnemyDistanceY * EnemyDistanceY);
+                float distance = (float)Math.Sqrt(EnemyDistanceX * EnemyDistanceX + EnemyDistanceY * EnemyDistanceY);
 
-                if (Distance > 0)
+                if (distance > 0)
                 {
-                    EnemyPosY += EnemyDistanceY / Distance * EnemySpeed;
-                    EnemyPosX += EnemyDistanceX / Distance * EnemySpeed;
+                    EnemyMoveX[i] += EnemyDistanceX / distance * EnemySpeed;
+                    EnemyMoveY[i] += EnemyDistanceY / distance * EnemySpeed;
 
-                    float NewEnemyPosY = (float)Math.Round(EnemyPosY);
-                    float NewEnemyPosX = (float)Math.Round(EnemyPosX);
+                    int NewEnemyPosY = (int)Math.Round(EnemyMoveY[i]);
+                    int NewEnemyPosX = (int)Math.Round(EnemyMoveX[i]);
 
-                    if (MapChar[(int)NewEnemyPosY][(int)NewEnemyPosX] == '-')
+                    NewEnemyPosY = Math.Max(EnemyPosYClamp.Item1, Math.Min(EnemyPosYClamp.Item2, NewEnemyPosY));
+                    NewEnemyPosX = Math.Max(EnemyPosXClamp.Item1, Math.Min(EnemyPosXClamp.Item2, NewEnemyPosX));
+
+
+                    if (MapChar[NewEnemyPosY][NewEnemyPosX] == '-')
                     {
-                        Console.SetCursorPosition(EnemyPos.Item2 + 1, EnemyPos.Item1 + 1);
-                        if (MapChar[EnemyPos.Item1][EnemyPos.Item2] == '^')
-                        {
-                            Console.ForegroundColor = ConsoleColor.DarkGray;
-                        }
-                        else if (MapChar[EnemyPos.Item1][EnemyPos.Item2] == '~')
-                        {
-                            Console.ForegroundColor = ConsoleColor.DarkBlue;
-                        }
-                        else if (MapChar[EnemyPos.Item1][EnemyPos.Item2] == '-')
-                        {
-                            Console.ForegroundColor = ConsoleColor.DarkGreen;
-                        }
-                        Console.Write(MapChar[EnemyPos.Item1][EnemyPos.Item2]);
+                        Console.SetCursorPosition(EnemyPosX[i] + 1, EnemyPosY[i] + 1);
+                        Console.ForegroundColor = ConsoleColor.DarkGreen;
+                        Console.Write(MapChar[EnemyPosY[i]][EnemyPosX[i]]);
 
-                        EnemyPos = ((int)NewEnemyPosY, (int)NewEnemyPosX);
-                    }
-                    else
-                    {
-                        EnemyPosY = EnemyPos.Item1;
-                        EnemyPosX = EnemyPos.Item2;
+                        EnemyPosY[i] = NewEnemyPosY;
+                        EnemyPosX[i] = NewEnemyPosX;
                     }
 
-                    Console.SetCursorPosition(EnemyPos.Item2 + 1, EnemyPos.Item1 + 1);
+                    Console.SetCursorPosition(EnemyPosX[i] + 1, EnemyPosY[i] + 1);
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.Write(Enemy);
-
                 }
             }
-
         }
+
 
         static void EnemyAttacking()
         {
-            if(EnemyAlive)
+            int currentTime = Environment.TickCount;
+
+            for (int i = 0; i < EnemyCount; i++)
             {
-                if (Math.Abs(PlayerPos.Item1 - EnemyPos.Item1) < 1 && Math.Abs(PlayerPos.Item2 - EnemyPos.Item2) < 1)
+                if(Math.Abs(PlayerPos.Item1 - EnemyPosY[i]) < 1 && Math.Abs(PlayerPos.Item2 - EnemyPosX[i]) < 1)
                 {
-                    PlayerHealth -= EnemyAttack;
-
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.SetCursorPosition(0, MapStringArray.Length + 2);
-                    Console.Write("PlayerHealth:                \n");
-
-                    if (PlayerHealth <= 0)
+                    if(currentTime - EnemyAttackTime[i] >= EnemyAttackSpeed)
                     {
-                        isDead = true;
-                    }
+                        EnemyAttackTime[i] = currentTime;
 
-                    Thread.Sleep(EnemyAttackSpeed);
+                        PlayerHealth -= EnemyAttack;
+
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.SetCursorPosition(0, MapStringArray.Length + 2);
+                        Console.Write($"PlayerHealth:                        \n");
+
+                        if (PlayerHealth <= 0)
+                        {
+                            isDead = true;
+                        }
+                    }
                 }
             }
         }
@@ -291,15 +307,21 @@ namespace Aiden_FirstPlayable_GameProgramming
             PlayerPosYClamp = (1, MapStringArray.Length);
             PlayerPosXClamp = (1, MapStringArray[1].Length);
 
+            EnemyPosYClamp = (1, MapStringArray.Length - 1);
+            EnemyPosXClamp = (1, MapStringArray[1].Length - 1);
+
             PrintMap();
 
             Console.SetCursorPosition(PlayerPos.Item2 + 1, PlayerPos.Item1 + 1);
             Console.ForegroundColor = ConsoleColor.Green;
             Console.Write(Player);
 
-            Console.SetCursorPosition(EnemyPos.Item2 + 1, EnemyPos.Item1 + 1);
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.Write(Enemy);
+            for(int i = 0; i < EnemyCount; i++)
+            {
+                Console.SetCursorPosition(EnemyPosX[i] + 1, EnemyPosY[i] + 1);
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write(Enemy);
+            }
 
             while (!isDead)
             {
@@ -312,24 +334,173 @@ namespace Aiden_FirstPlayable_GameProgramming
 
                 EnemyAttacking();
 
-                Console.ForegroundColor = ConsoleColor.Red;
+                Console.ForegroundColor = ConsoleColor.White;
                 Console.SetCursorPosition(0, MapStringArray.Length + 2);
-                Console.Write($"PlayerHealth:{PlayerHealth}\n");
-                Console.Write($"EnemyHealth:{EnemyHealth}");
+                Console.Write($"Player Health:{PlayerHealth}\n");
+                Console.Write($"Player Score:{PlayerScore}\n\n");
+
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write($"Enemy1 Health:{EnemyHealth[0]}\n");
+                Console.Write($"Enemy2 Health:{EnemyHealth[1]}\n");
+                Console.Write($"Enemy3 Health:{EnemyHealth[2]}\n");
                 Thread.Sleep(FrameTime);
+            }
+        }
+
+        static void Menu()
+        {
+            Console.WriteLine("Welcome To.... Uhhh\n");
+            Thread.Sleep(2000);
+            Console.WriteLine("Uhm");
+            Thread.Sleep(2000);
+            Console.Clear();
+
+            Console.WriteLine("Yeah I Don't Know, I Didn't Come Up With A Name");
+            Thread.Sleep(1000);
+
+            Console.SetCursorPosition(0, 0);
+            Console.WriteLine("Yeah I Don't Know, I Didn't Come Up With A Name.");
+            Thread.Sleep(1000);
+
+            Console.SetCursorPosition(0, 0);
+            Console.WriteLine("Yeah I Don't Know, I Didn't Come Up With A Name..");
+            Thread.Sleep(1000);
+
+            Console.SetCursorPosition(0, 0);
+            Console.WriteLine("Yeah I Don't Know, I Didn't Come Up With A Name...");
+            Thread.Sleep(1000);
+            Console.Clear();
+
+            Console.WriteLine("Press Any Key To Play...");
+            Console.ReadKey(true);
+            Console.Clear();
+        }
+
+        static void ShowLeaderboard(bool AddScore)
+        {
+            bool Answer = false;
+
+            if(AddScore)
+            {
+                while (!Answer)
+                {
+                    Console.Clear();
+                    Console.WriteLine("Please Input 3 Initials:");
+                    Console.SetCursorPosition(25, 0);
+
+                    string PlayerInput = Console.ReadLine().ToUpper();
+
+                    if (PlayerInput.Length != 3 || PlayerInput.Any(Char.IsDigit))
+                    {
+                        Console.Clear();
+                        Console.CursorVisible = false;
+                        Console.WriteLine("Your Input Was Invalid... Please Try Again.\n");
+                        Console.WriteLine("Press Any Key To Continue...");
+                        Console.SetCursorPosition(29, 2);
+                        Console.ReadKey(true);
+                        Console.Clear();
+                    }
+                    else
+                    {
+                        Answer = true;
+                        File.AppendAllText(LeaderboardPath, $"{PlayerScore}: {PlayerInput}");
+                        Console.Clear();
+                    }
+                }
+            }
+
+            string ScoreFromFile = File.ReadAllText(LeaderboardPath);
+            LeaderboardStringArray = ScoreFromFile.Split(',');
+            Array.Sort(LeaderboardStringArray);
+
+            Console.WriteLine("Leaderboard:\n");
+
+            for(int i = 0; i < LeaderboardStringArray.Length; i++)
+            {
+                Console.WriteLine($"{LeaderboardStringArray[i]}");
+            }
+
+            Console.WriteLine("Press Any Key To Exit...");
+            Console.ReadKey(true);
+
+        }
+
+        static void EndGame()
+        {
+            bool Answer = false;
+
+            Console.ForegroundColor= ConsoleColor.Red;
+
+            Console.Clear();
+            Console.WriteLine("Game Over!");
+            Thread.Sleep(EndGameWait);
+            Console.Clear();
+
+            while (!Answer)
+            {
+                Console.Write($"Your Score Was: {PlayerScore}!\n\n");
+
+                Console.Write($"Would You Like To See The Leaderboard?\n");
+                Console.Write($"Y/N:");
+
+                Console.SetCursorPosition(5, 3);
+                Console.CursorVisible = true;
+                string PlayerInput = Console.ReadLine().ToUpper();
+
+                if (PlayerInput == "Y")
+                {
+                    Answer = true;
+
+                    Console.Clear();
+                    Console.WriteLine("Would You Like To Add Your Score To The Leaderboard?\n");
+                    Console.Write($"Y/N:");
+                    Console.SetCursorPosition(5, 2);
+                    PlayerInput = Console.ReadLine().ToUpper();
+
+                    if (PlayerInput == "Y")
+                    {
+                        ShowLeaderboard(true);
+                    }
+                    else if(PlayerInput == "N")
+                    {
+                        ShowLeaderboard(false);
+                    }
+                }
+                else if (PlayerInput == "N")
+                {
+                    Answer = true;
+                    Console.CursorVisible= false;
+                    Console.Clear();
+                    Console.WriteLine("Well Okay Then...");
+                    Thread.Sleep(2000);
+                    Console.Write("Didn't Want To Show You Anyway");
+                    Thread.Sleep(2000);
+                    Console.ReadKey();
+                    Console.WriteLine("Press Any Key...");
+                }
+                else
+                {
+                    Console.Clear();
+                    Console.CursorVisible = false;
+                    Console.WriteLine("Your Input Was Invalid... Please Try Again.\n");
+                    Console.WriteLine("Press Any Key...");
+                    Console.SetCursorPosition(29, 2);
+                    Console.ReadKey(true);
+                    Console.Clear();
+                }
             }
         }
 
         static void Main(string[] args)
         {
             Console.CursorVisible = false;
-            InitializeMap();
-            Update();
 
-            Console.SetCursorPosition(24, 15);
-            Console.WriteLine("Game Over!");
-            Thread.Sleep(EndGameWait);
-            Console.ReadKey(true);
+            //Menu();
+
+            //InitializeMap();
+            //Update();
+
+            EndGame();
         }
     }
 }
