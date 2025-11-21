@@ -15,6 +15,7 @@ namespace Aiden_FirstPlayable_GameProgramming
         static bool isDead = false;
 
         static int FrameTime = 35;
+        static int EndGameWait = 2000;
 
         static ConsoleKeyInfo PlayerInput;
 
@@ -48,6 +49,8 @@ namespace Aiden_FirstPlayable_GameProgramming
         static int EnemyAttack = 10;
         static int EnemyAttackSpeed = 200;
         static float EnemySpeed = 0.25f;
+
+        static bool EnemyAlive = true;
 
         #endregion
 
@@ -142,7 +145,7 @@ namespace Aiden_FirstPlayable_GameProgramming
                         NewPlayerPos.Item1 -= PlayerSpeed;
                     }
 
-                    break;
+                break;
 
                 case ConsoleKey.S:
 
@@ -151,7 +154,7 @@ namespace Aiden_FirstPlayable_GameProgramming
                         NewPlayerPos.Item1 += PlayerSpeed;
                     }
 
-                    break;
+                break;
 
                 case ConsoleKey.A:
 
@@ -160,7 +163,7 @@ namespace Aiden_FirstPlayable_GameProgramming
                         NewPlayerPos.Item2 -= PlayerSpeed;
                     }
 
-                    break;
+                break;
 
                 case ConsoleKey.D:
 
@@ -170,23 +173,14 @@ namespace Aiden_FirstPlayable_GameProgramming
                         NewPlayerPos.Item2 += PlayerSpeed;
                     }
 
-                    break;
+                break;
             }
 
             Console.SetCursorPosition(PlayerPos.Item2+1, PlayerPos.Item1+1);
-            if(MapChar[PlayerPos.Item1][PlayerPos.Item2] == '^')
-            {
-                Console.ForegroundColor = ConsoleColor.DarkGray;
-            }
-            else if (MapChar[PlayerPos.Item1][PlayerPos.Item2] == '~')
-            {
-                Console.ForegroundColor = ConsoleColor.DarkBlue;
-            }
-            else if (MapChar[PlayerPos.Item1][PlayerPos.Item2] == '-')
-            {
-                Console.ForegroundColor = ConsoleColor.DarkGreen;
-            }
+            Console.ForegroundColor = ConsoleColor.DarkGreen;
             Console.Write(MapChar[PlayerPos.Item1][PlayerPos.Item2]);
+
+            PlayerAttacking();
 
             PlayerPos = NewPlayerPos;
 
@@ -196,70 +190,98 @@ namespace Aiden_FirstPlayable_GameProgramming
 
         }
 
+        static void PlayerAttacking()
+        {
+            if(EnemyAlive)
+            {
+                if (Math.Abs(EnemyPos.Item1 - NewPlayerPos.Item1) < 1 && Math.Abs(EnemyPos.Item2 - NewPlayerPos.Item2) < 1)
+                {
+                    EnemyHealth -= PlayerAttack;
+
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.SetCursorPosition(0, MapStringArray.Length + 3);
+                    Console.Write("EnemyHealth:                \n");
+
+                    if (EnemyHealth <= 0)
+                    {
+                        EnemyAlive = false;
+                    }
+
+                    Thread.Sleep(EnemyAttackSpeed);
+                }
+            }
+        }
+
         static void EnemyMovement()
         {
-            int EnemyDistanceY = PlayerPos.Item1 - EnemyPos.Item1;
-            int EnemyDistanceX = PlayerPos.Item2 - EnemyPos.Item2;
-
-            float Distance = (float)Math.Sqrt(EnemyDistanceX * EnemyDistanceX + EnemyDistanceY * EnemyDistanceY);
-
-            if(Distance > 0)
+            if(EnemyAlive)
             {
-                EnemyPosY += EnemyDistanceY / Distance * EnemySpeed;
-                EnemyPosX += EnemyDistanceX / Distance * EnemySpeed;
+                int EnemyDistanceY = PlayerPos.Item1 - EnemyPos.Item1;
+                int EnemyDistanceX = PlayerPos.Item2 - EnemyPos.Item2;
 
-                float NewEnemyPosY = (float)Math.Round(EnemyPosY);
-                float NewEnemyPosX = (float)Math.Round(EnemyPosX);
+                float Distance = (float)Math.Sqrt(EnemyDistanceX * EnemyDistanceX + EnemyDistanceY * EnemyDistanceY);
 
-                if (MapChar[(int)NewEnemyPosY][(int)NewEnemyPosX] == '-')
+                if (Distance > 0)
                 {
+                    EnemyPosY += EnemyDistanceY / Distance * EnemySpeed;
+                    EnemyPosX += EnemyDistanceX / Distance * EnemySpeed;
+
+                    float NewEnemyPosY = (float)Math.Round(EnemyPosY);
+                    float NewEnemyPosX = (float)Math.Round(EnemyPosX);
+
+                    if (MapChar[(int)NewEnemyPosY][(int)NewEnemyPosX] == '-')
+                    {
+                        Console.SetCursorPosition(EnemyPos.Item2 + 1, EnemyPos.Item1 + 1);
+                        if (MapChar[EnemyPos.Item1][EnemyPos.Item2] == '^')
+                        {
+                            Console.ForegroundColor = ConsoleColor.DarkGray;
+                        }
+                        else if (MapChar[EnemyPos.Item1][EnemyPos.Item2] == '~')
+                        {
+                            Console.ForegroundColor = ConsoleColor.DarkBlue;
+                        }
+                        else if (MapChar[EnemyPos.Item1][EnemyPos.Item2] == '-')
+                        {
+                            Console.ForegroundColor = ConsoleColor.DarkGreen;
+                        }
+                        Console.Write(MapChar[EnemyPos.Item1][EnemyPos.Item2]);
+
+                        EnemyPos = ((int)NewEnemyPosY, (int)NewEnemyPosX);
+                    }
+                    else
+                    {
+                        EnemyPosY = EnemyPos.Item1;
+                        EnemyPosX = EnemyPos.Item2;
+                    }
+
                     Console.SetCursorPosition(EnemyPos.Item2 + 1, EnemyPos.Item1 + 1);
-                    if (MapChar[EnemyPos.Item1][EnemyPos.Item2] == '^')
-                    {
-                        Console.ForegroundColor = ConsoleColor.DarkGray;
-                    }
-                    else if (MapChar[EnemyPos.Item1][EnemyPos.Item2] == '~')
-                    {
-                        Console.ForegroundColor = ConsoleColor.DarkBlue;
-                    }
-                    else if (MapChar[EnemyPos.Item1][EnemyPos.Item2] == '-')
-                    {
-                        Console.ForegroundColor = ConsoleColor.DarkGreen;
-                    }
-                    Console.Write(MapChar[EnemyPos.Item1][EnemyPos.Item2]);
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.Write(Enemy);
 
-                    EnemyPos = ((int)NewEnemyPosY, (int)NewEnemyPosX);
                 }
-                else
-                {
-                    EnemyPosY = EnemyPos.Item1;
-                    EnemyPosX = EnemyPos.Item2;
-                }
-
-                Console.SetCursorPosition(EnemyPos.Item2 + 1, EnemyPos.Item1 + 1);
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write(Enemy);
-
             }
 
         }
 
         static void EnemyAttacking()
         {
-            if (Math.Abs(PlayerPos.Item1 - EnemyPos.Item1) < 1 && Math.Abs(PlayerPos.Item2 - EnemyPos.Item2) < 1)
+            if(EnemyAlive)
             {
-                PlayerHealth -= EnemyAttack;
-
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.SetCursorPosition(0, MapStringArray.Length + 2);
-                Console.Write("PlayerHealth:                \n");
-
-                if (PlayerHealth <= 0)
+                if (Math.Abs(PlayerPos.Item1 - EnemyPos.Item1) < 1 && Math.Abs(PlayerPos.Item2 - EnemyPos.Item2) < 1)
                 {
-                    isDead = true;
-                }
+                    PlayerHealth -= EnemyAttack;
 
-                Thread.Sleep(EnemyAttackSpeed);
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.SetCursorPosition(0, MapStringArray.Length + 2);
+                    Console.Write("PlayerHealth:                \n");
+
+                    if (PlayerHealth <= 0)
+                    {
+                        isDead = true;
+                    }
+
+                    Thread.Sleep(EnemyAttackSpeed);
+                }
             }
         }
 
@@ -306,7 +328,7 @@ namespace Aiden_FirstPlayable_GameProgramming
 
             Console.SetCursorPosition(24, 15);
             Console.WriteLine("Game Over!");
-            Thread.Sleep(2000);
+            Thread.Sleep(EndGameWait);
             Console.ReadKey(true);
         }
     }
