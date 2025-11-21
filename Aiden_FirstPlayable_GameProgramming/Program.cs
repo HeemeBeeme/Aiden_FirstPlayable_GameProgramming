@@ -403,21 +403,24 @@ namespace Aiden_FirstPlayable_GameProgramming
                     else
                     {
                         Answer = true;
-                        File.AppendAllText(LeaderboardPath, $"{PlayerScore}: {PlayerInput}");
+                        File.AppendAllText(LeaderboardPath, $"{PlayerScore}: {PlayerInput},");
+                        Console.CursorVisible = false;
                         Console.Clear();
                     }
                 }
             }
 
+            Console.Clear();
+            Console.CursorVisible = false;
             string ScoreFromFile = File.ReadAllText(LeaderboardPath);
             LeaderboardStringArray = ScoreFromFile.Split(',');
             Array.Sort(LeaderboardStringArray);
 
-            Console.WriteLine("Leaderboard:\n");
+            Console.Write("Leaderboard:");
 
             for(int i = 0; i < LeaderboardStringArray.Length; i++)
             {
-                Console.WriteLine($"{LeaderboardStringArray[i]}");
+                Console.WriteLine($"{LeaderboardStringArray[i]}\n");
             }
 
             Console.WriteLine("Press Any Key To Exit...");
@@ -449,21 +452,34 @@ namespace Aiden_FirstPlayable_GameProgramming
 
                 if (PlayerInput == "Y")
                 {
-                    Answer = true;
-
-                    Console.Clear();
-                    Console.WriteLine("Would You Like To Add Your Score To The Leaderboard?\n");
-                    Console.Write($"Y/N:");
-                    Console.SetCursorPosition(5, 2);
-                    PlayerInput = Console.ReadLine().ToUpper();
-
-                    if (PlayerInput == "Y")
+                    while(!Answer)
                     {
-                        ShowLeaderboard(true);
-                    }
-                    else if(PlayerInput == "N")
-                    {
-                        ShowLeaderboard(false);
+                        Console.Clear();
+                        Console.WriteLine("Would You Like To Add Your Score To The Leaderboard?\n");
+                        Console.Write($"Y/N:");
+                        Console.SetCursorPosition(5, 2);
+                        PlayerInput = Console.ReadLine().ToUpper();
+
+                        if (PlayerInput == "Y")
+                        {
+                            Answer = true;
+                            ShowLeaderboard(true);
+                        }
+                        else if (PlayerInput == "N")
+                        {
+                            Answer = true;
+                            ShowLeaderboard(false);
+                        }
+                        else
+                        {
+                            Console.Clear();
+                            Console.CursorVisible = false;
+                            Console.WriteLine("Your Input Was Invalid... Please Try Again.\n");
+                            Console.WriteLine("Press Any Key...");
+                            Console.SetCursorPosition(29, 2);
+                            Console.ReadKey(true);
+                            Console.Clear();
+                        }
                     }
                 }
                 else if (PlayerInput == "N")
@@ -471,12 +487,12 @@ namespace Aiden_FirstPlayable_GameProgramming
                     Answer = true;
                     Console.CursorVisible= false;
                     Console.Clear();
-                    Console.WriteLine("Well Okay Then...");
+                    Console.WriteLine("Well Okay Then...\n");
                     Thread.Sleep(2000);
-                    Console.Write("Didn't Want To Show You Anyway");
+                    Console.WriteLine("Didn't Want To Show You Anyway\n");
                     Thread.Sleep(2000);
-                    Console.ReadKey();
                     Console.WriteLine("Press Any Key...");
+                    Console.ReadKey();
                 }
                 else
                 {
