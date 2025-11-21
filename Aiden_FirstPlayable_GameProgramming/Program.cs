@@ -416,7 +416,7 @@ namespace Aiden_FirstPlayable_GameProgramming
             LeaderboardStringArray = ScoreFromFile.Split(',');
             Array.Sort(LeaderboardStringArray);
 
-            Console.Write("Leaderboard:");
+            Console.WriteLine("Leaderboard:\n");
 
             for(int i = 0; i < LeaderboardStringArray.Length; i++)
             {
